@@ -1,11 +1,28 @@
-import { Calendars } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import { Calendars, User, LogOut } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import useAuthStore from "../lib/store/authStore";
+import { authApi } from "../lib/api/authApi";
+import toast from "react-hot-toast";
 const Navbar = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout: logoutStore } = useAuthStore();
+
   const handleNavClick = () => {
     // Close dropdown by removing focus from the dropdown trigger
     const elem = document.activeElement;
     if (elem) {
       elem?.blur();
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+      logoutStore();
+      toast.success("Logged out successfully!");
+      navigate("/");
+    } catch {
+      toast.error("Logging out failed");
     }
   };
 
@@ -69,19 +86,47 @@ const Navbar = () => {
           >
             {navLinks}
             <div className="divider my-2"></div>
-            <li onClick={handleNavClick}>
-              <NavLink to="/login" className="hover:bg-base-200 font-medium">
-                Login
-              </NavLink>
-            </li>
-            <li onClick={handleNavClick} className="mt-1">
-              <NavLink
-                to="/register"
-                className="btn btn-primary btn-sm normal-case"
-              >
-                Register
-              </NavLink>
-            </li>
+            {isAuthenticated ? (
+              <>
+                <li onClick={handleNavClick}>
+                  <NavLink
+                    to="/profile"
+                    className="hover:bg-base-200 font-medium"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </NavLink>
+                </li>
+                <li onClick={handleNavClick} className="mt-1">
+                  <button
+                    onClick={handleLogout}
+                    className="hover:bg-base-200 font-medium text-error"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li onClick={handleNavClick}>
+                  <NavLink
+                    to="/login"
+                    className="hover:bg-base-200 font-medium"
+                  >
+                    Login
+                  </NavLink>
+                </li>
+                <li onClick={handleNavClick} className="mt-1">
+                  <NavLink
+                    to="/register"
+                    className="btn btn-primary btn-sm normal-case"
+                  >
+                    Register
+                  </NavLink>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 
@@ -105,18 +150,39 @@ const Navbar = () => {
 
       {/* Auth Buttons - Right side - Desktop only */}
       <div className="navbar-end gap-2">
-        <Link
-          to="/login"
-          className="btn btn-outline btn-warning btn-sm lg:btn-md hidden lg:inline-flex"
-        >
-          Login
-        </Link>
-        <Link
-          to="/register"
-          className="btn btn-info btn-sm lg:btn-md hidden lg:inline-flex"
-        >
-          Register
-        </Link>
+        {isAuthenticated ? (
+          <>
+            <Link
+              to="/profile"
+              className="btn btn-ghost btn-sm lg:btn-md hidden lg:inline-flex"
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="btn btn-outline btn-error btn-sm lg:btn-md hidden lg:inline-flex"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="btn btn-outline btn-warning btn-sm lg:btn-md hidden lg:inline-flex"
+            >
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="btn btn-info btn-sm lg:btn-md hidden lg:inline-flex"
+            >
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
