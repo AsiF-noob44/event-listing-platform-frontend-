@@ -21,14 +21,20 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("created");
-  const [myEvents, setMyEvents] = useState([]);
-  const [savedEvents, setSavedEvents] = useState([]);
-  const [stats, setStats] = useState({ createdCount: 0, savedCount: 0 });
+  const [myEvents, setMyEvents] = useState({ upcoming: [], past: [] });
+  const [savedEvents, setSavedEvents] = useState({ upcoming: [], past: [] });
+  const [stats, setStats] = useState({
+    createdCount: 0,
+    upcomingCount: 0,
+    pastCount: 0,
+    savedCount: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [showPastEvents, setShowPastEvents] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -219,10 +225,21 @@ const ProfilePage = () => {
                       <Calendar className="w-8 h-8" />
                     </div>
                     <div className="stat-value text-primary">
-                      {stats.createdCount}
+                      {stats.upcomingCount || stats.createdCount}
                     </div>
-                    <div className="stat-title">Events Created</div>
+                    <div className="stat-title">Upcoming Events</div>
                   </div>
+                  {stats.pastCount > 0 && (
+                    <div className="stat bg-base-200 rounded-lg p-4">
+                      <div className="stat-figure text-base-content/70">
+                        <Calendar className="w-8 h-8" />
+                      </div>
+                      <div className="stat-value text-base-content/70">
+                        {stats.pastCount}
+                      </div>
+                      <div className="stat-title">Past Events</div>
+                    </div>
+                  )}
                   <div className="stat bg-secondary/20 rounded-lg p-4 border border-secondary/30">
                     <div className="stat-figure text-secondary-content">
                       <Bookmark className="w-8 h-8" />
@@ -262,7 +279,24 @@ const ProfilePage = () => {
         {activeTab === "created" && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">My Events</h2>
+              <div>
+                <h2 className="text-2xl font-bold">My Events</h2>
+                {myEvents.past.length > 0 && (
+                  <div className="form-control mt-2">
+                    <label className="label cursor-pointer gap-2 justify-start">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm"
+                        checked={showPastEvents}
+                        onChange={(e) => setShowPastEvents(e.target.checked)}
+                      />
+                      <span className="label-text">
+                        Show past events ({myEvents.past.length})
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="btn btn-secondary gap-2"
@@ -272,7 +306,7 @@ const ProfilePage = () => {
               </button>
             </div>
 
-            {myEvents.length === 0 ? (
+            {myEvents.upcoming.length === 0 && myEvents.past.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="mx-auto h-16 w-16 text-base-content/30 mb-4" />
                 <h3 className="text-2xl font-bold mb-2">No events yet</h3>
@@ -287,75 +321,161 @@ const ProfilePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myEvents.map((event, index) => (
-                  <motion.div
-                    key={event._id}
-                    variants={cardStagger}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    custom={index}
-                  >
-                    <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
-                      <div className="card-body">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="badge badge-primary">
-                            {event.category}
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEditClick(event)}
-                              className="btn btn-ghost btn-sm btn-square"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteEvent(event._id)}
-                              className="btn btn-ghost btn-sm btn-square text-error"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
+              <>
+                {/* Upcoming Events */}
+                {myEvents.upcoming.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4 text-primary">
+                      Upcoming Events
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {myEvents.upcoming.map((event, index) => (
+                        <motion.div
+                          key={event._id}
+                          variants={cardStagger}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true, amount: 0.2 }}
+                          custom={index}
+                        >
+                          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="badge badge-primary">
+                                  {event.category}
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleEditClick(event)}
+                                    className="btn btn-ghost btn-sm btn-square"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteEvent(event._id)}
+                                    className="btn btn-ghost btn-sm btn-square text-error"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
 
-                        <h3 className="card-title text-lg line-clamp-2">
-                          {event.name}
-                        </h3>
-                        <p className="text-amber-100 text-sm line-clamp-2 mb-4">
-                          {event.description}
-                        </p>
+                              <h3 className="card-title text-lg line-clamp-2">
+                                {event.name}
+                              </h3>
+                              <p className="text-amber-100 text-sm line-clamp-2 mb-4">
+                                {event.description}
+                              </p>
 
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span>{formatDate(event.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="w-4 h-4 text-primary" />
-                            <span>{event.time}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span className="line-clamp-1">
-                              {event.location}
-                            </span>
-                          </div>
-                        </div>
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <span>{formatDate(event.date)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="w-4 h-4 text-primary" />
+                                  <span>{event.time}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="w-4 h-4 text-primary" />
+                                  <span className="line-clamp-1">
+                                    {event.location}
+                                  </span>
+                                </div>
+                              </div>
 
-                        <div className="card-actions">
-                          <button
-                            onClick={() => navigate(`/events/${event._id}`)}
-                            className="btn btn-sm btn-outline w-full"
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </div>
+                              <div className="card-actions">
+                                <button
+                                  onClick={() =>
+                                    navigate(`/events/${event._id}`)
+                                  }
+                                  className="btn btn-sm btn-outline w-full"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                )}
+
+                {/* Past Events */}
+                {showPastEvents && myEvents.past.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4 text-base-content/60">
+                      Past Events
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-75">
+                      {myEvents.past.map((event, index) => (
+                        <motion.div
+                          key={event._id}
+                          variants={cardStagger}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true, amount: 0.2 }}
+                          custom={index}
+                        >
+                          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="badge badge-ghost">
+                                  {event.category}
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleDeleteEvent(event._id)}
+                                    className="btn btn-ghost btn-sm btn-square text-error"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h3 className="card-title text-lg line-clamp-2">
+                                {event.name}
+                              </h3>
+                              <p className="text-amber-100 text-sm line-clamp-2 mb-4">
+                                {event.description}
+                              </p>
+
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <span>{formatDate(event.date)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="w-4 h-4 text-primary" />
+                                  <span>{event.time}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="w-4 h-4 text-primary" />
+                                  <span className="line-clamp-1">
+                                    {event.location}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="card-actions">
+                                <button
+                                  onClick={() =>
+                                    navigate(`/events/${event._id}`)
+                                  }
+                                  className="btn btn-sm btn-outline w-full"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -363,9 +483,29 @@ const ProfilePage = () => {
         {/* Saved Events Tab */}
         {activeTab === "saved" && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">Saved Events</h2>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Saved Events</h2>
+                {savedEvents.past.length > 0 && (
+                  <div className="form-control mt-2">
+                    <label className="label cursor-pointer gap-2 justify-start">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-sm"
+                        checked={showPastEvents}
+                        onChange={(e) => setShowPastEvents(e.target.checked)}
+                      />
+                      <span className="label-text">
+                        Show past events ({savedEvents.past.length})
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {savedEvents.length === 0 ? (
+            {savedEvents.upcoming.length === 0 &&
+            savedEvents.past.length === 0 ? (
               <div className="text-center py-12">
                 <Bookmark className="mx-auto h-16 w-16 text-base-content/30 mb-4" />
                 <h3 className="text-2xl font-bold mb-2">No saved events</h3>
@@ -380,69 +520,155 @@ const ProfilePage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedEvents.map((saved, index) => (
-                  <motion.div
-                    key={saved._id}
-                    variants={cardStagger}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    custom={index}
-                  >
-                    <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
-                      <div className="card-body">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="badge badge-primary">
-                            {saved.event.category}
-                          </div>
-                          <button
-                            onClick={() => handleUnsaveEvent(saved.event._id)}
-                            className="btn btn-ghost btn-sm btn-square text-error"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
+              <>
+                {/* Upcoming Saved Events */}
+                {savedEvents.upcoming.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4 text-primary">
+                      Upcoming Events
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {savedEvents.upcoming.map((saved, index) => (
+                        <motion.div
+                          key={saved._id}
+                          variants={cardStagger}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true, amount: 0.2 }}
+                          custom={index}
+                        >
+                          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="badge badge-primary">
+                                  {saved.event.category}
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    handleUnsaveEvent(saved.event._id)
+                                  }
+                                  className="btn btn-ghost btn-sm btn-square text-error"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
 
-                        <h3 className="card-title text-lg line-clamp-2">
-                          {saved.event.name}
-                        </h3>
-                        <p className="text-base-content/70 text-sm line-clamp-2 mb-4">
-                          {saved.event.description}
-                        </p>
+                              <h3 className="card-title text-lg line-clamp-2">
+                                {saved.event.name}
+                              </h3>
+                              <p className="text-base-content/70 text-sm line-clamp-2 mb-4">
+                                {saved.event.description}
+                              </p>
 
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-primary" />
-                            <span>{formatDate(saved.event.date)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="w-4 h-4 text-primary" />
-                            <span>{saved.event.time}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin className="w-4 h-4 text-primary" />
-                            <span className="line-clamp-1">
-                              {saved.event.location}
-                            </span>
-                          </div>
-                        </div>
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <span>{formatDate(saved.event.date)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="w-4 h-4 text-primary" />
+                                  <span>{saved.event.time}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="w-4 h-4 text-primary" />
+                                  <span className="line-clamp-1">
+                                    {saved.event.location}
+                                  </span>
+                                </div>
+                              </div>
 
-                        <div className="card-actions">
-                          <button
-                            onClick={() =>
-                              navigate(`/events/${saved.event._id}`)
-                            }
-                            className="btn btn-sm btn-outline w-full"
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </div>
+                              <div className="card-actions">
+                                <button
+                                  onClick={() =>
+                                    navigate(`/events/${saved.event._id}`)
+                                  }
+                                  className="btn btn-sm btn-outline w-full"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                )}
+
+                {/* Past Saved Events */}
+                {showPastEvents && savedEvents.past.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4 text-base-content/60">
+                      Past Events
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-75">
+                      {savedEvents.past.map((saved, index) => (
+                        <motion.div
+                          key={saved._id}
+                          variants={cardStagger}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true, amount: 0.2 }}
+                          custom={index}
+                        >
+                          <div className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all h-full">
+                            <div className="card-body">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="badge badge-ghost">
+                                  {saved.event.category}
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    handleUnsaveEvent(saved.event._id)
+                                  }
+                                  className="btn btn-ghost btn-sm btn-square text-error"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              <h3 className="card-title text-lg line-clamp-2">
+                                {saved.event.name}
+                              </h3>
+                              <p className="text-base-content/70 text-sm line-clamp-2 mb-4">
+                                {saved.event.description}
+                              </p>
+
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <span>{formatDate(saved.event.date)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="w-4 h-4 text-primary" />
+                                  <span>{saved.event.time}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <MapPin className="w-4 h-4 text-primary" />
+                                  <span className="line-clamp-1">
+                                    {saved.event.location}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="card-actions">
+                                <button
+                                  onClick={() =>
+                                    navigate(`/events/${saved.event._id}`)
+                                  }
+                                  className="btn btn-sm btn-outline w-full"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
