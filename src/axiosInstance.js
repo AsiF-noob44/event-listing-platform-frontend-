@@ -11,7 +11,11 @@ const axiosInstance = axios.create({
 // Request interceptor for debugging
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    console.log(
+      `API Request: ${config.method?.toUpperCase()} ${config.baseURL}${
+        config.url
+      }`
+    );
     return config;
   },
   (error) => {
