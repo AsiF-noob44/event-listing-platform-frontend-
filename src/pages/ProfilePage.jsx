@@ -10,6 +10,7 @@ import {
   Edit,
   Bookmark,
   X,
+  CalendarX2,
 } from "lucide-react";
 import { eventApi } from "../lib/api/eventApi";
 import { savedEventApi } from "../lib/api/savedEventApi";
@@ -448,7 +449,7 @@ const ProfilePage = () => {
 
                               <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <CalendarX2 className="w-4 h-4 text-error" />
                                   <span>{formatDate(event.date)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
@@ -641,7 +642,7 @@ const ProfilePage = () => {
 
                               <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Calendar className="w-4 h-4 text-primary" />
+                                  <CalendarX2 className="w-4 h-4 text-error" />
                                   <span>{formatDate(saved.event.date)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
