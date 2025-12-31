@@ -237,8 +237,8 @@ const ProfilePage = () => {
                   </div>
                   {stats.pastCount > 0 && (
                     <div className="stat bg-base-200 rounded-lg p-4">
-                      <div className="stat-figure text-base-content/70">
-                        <Calendar className="w-8 h-8" />
+                      <div className="stat-figure text-error">
+                        <CalendarX2 className="w-8 h-8" />
                       </div>
                       <div className="stat-value text-base-content/70">
                         {stats.pastCount}
