@@ -93,7 +93,8 @@ const ProfilePage = () => {
   const handleCreateEvent = async (e) => {
     e.preventDefault();
     try {
-      await eventApi.createEvent(formData);
+      const timezoneOffset = new Date().getTimezoneOffset();
+      await eventApi.createEvent({ ...formData, timezoneOffset });
       toast.success("Event created successfully!");
       setShowCreateModal(false);
       resetForm();
@@ -119,7 +120,11 @@ const ProfilePage = () => {
   const handleUpdateEvent = async (e) => {
     e.preventDefault();
     try {
-      await eventApi.updateEvent(editingEvent._id, formData);
+      const timezoneOffset = new Date().getTimezoneOffset();
+      await eventApi.updateEvent(editingEvent._id, {
+        ...formData,
+        timezoneOffset,
+      });
       toast.success("Event updated successfully!");
       setShowEditModal(false);
       setEditingEvent(null);
